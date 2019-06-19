@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+git checkout master
+stack haddock --no-haddock-deps --fast
+
+version="$(sed -nr 's/^version:\s+(\S+)/\1/p' *.cabal)"
+package="hindley-milner-$version"
+dpath="$(stack path --local-doc-root)/$package"
+git branch -D gh-pages || echo "gh-pages branch didn't exist"
+git checkout --orphan gh-pages
+rm -r *
+cp -r "$dpath"/* .
+git add .
+git commit -m "Automatic Haddock commit"
+git push -f -u origin gh-pages
+git co master
