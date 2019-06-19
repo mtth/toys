@@ -1,11 +1,11 @@
 name:                hindley-milner
 version:             0.0.2.0
 synopsis:            Toy Hindley-Milner implementation
-homepage:            https://github.com/mtth/musings
+homepage:            https://github.com/mtth/hindley-milner
 license:             BSD3
 license-file:        LICENSE
 author:              Matthieu Monsch
-maintainer:          matthieu.monsch@gmail.com
+maintainer:          mtth@apache.org
 copyright:           2019 Matthieu Monsch
 category:            Web
 build-type:          Simple
