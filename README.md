@@ -20,10 +20,11 @@ hm> dot incr incr 0
 2
 ```
 
-See the `examples/` folder for a few more sample definitions.
+See the `examples/` folder for a few more sample definitions and the [Haddock
+documentation](https://mtth.github.io/hindley-milner) for more information.
 
 ## References
 
 + https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system
-* http://dev.stephendiehl.com/fun/006_hindley_milner.html
-* https://en.wikipedia.org/wiki/Lambda_calculus
++ http://dev.stephendiehl.com/fun/006_hindley_milner.html
++ https://en.wikipedia.org/wiki/Lambda_calculus
