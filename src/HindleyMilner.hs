@@ -2,8 +2,16 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
--- | This module exposes a higher-level API to run computations in our toy language. It also
--- provides various common built-in functions via 'defaultEnv'.
+-- | This module exposes a higher-level API to run computations in our toy implementation of the
+-- Hindley-Milner type system. It also provides various common built-in functions via 'defaultEnv'.
+--
+-- The underlying implementation is split into three modules:
+--
+-- * "HindleyMilner.Parse", responsible for parsing text into expressions
+-- * "HindleyMilner.Infer", responsible for inferring the type of each expression
+-- * "HindleyMilner.Eval", responsible for evaluating well-typed expressions
+--
+-- This last module also provides utilities for extending the implementation with new built-ins.
 module HindleyMilner (
   -- * Interpreter
   interpret,

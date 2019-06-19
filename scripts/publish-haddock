@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
+set -o nounset
+set -o errexit
+set -o pipefail
+shopt -s nullglob
+
+# Safety since the script deletes everything.
+git diff-index --quiet @ || (echo 'commit changes first' && exit 1)
+
 git checkout master
 stack haddock --no-haddock-deps --fast
-
 version="$(sed -nr 's/^version:\s+(\S+)/\1/p' *.cabal)"
 package="hindley-milner-$version"
 dpath="$(stack path --local-doc-root)/$package"
@@ -11,6 +18,6 @@ git checkout --orphan gh-pages
 rm -r *
 cp -r "$dpath"/* .
 git add .
-git commit -m "Automatic Haddock commit"
+git commit -m 'Update Haddock'
 git push -f -u origin gh-pages
-git co master
+git checkout master

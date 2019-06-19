@@ -63,9 +63,10 @@ data Binding = Binding
   , bindingExpr :: Expr -- ^ Bound expression.
   } deriving (Eq, Ord, Show)
 
--- | A parser specialized to our use-case.
+-- | A parser specialized to our implementation.
 type Parser a = P.Parsec Void Text a
 
+-- | Error thrown during parsing.
 type ParsingError = P.ParseErrorBundle Text Void
 
 whitespace :: Parser ()

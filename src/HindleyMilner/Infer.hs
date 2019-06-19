@@ -128,6 +128,7 @@ data TypeError
   | UnificationFailure Type Type -- ^ Failed to match two types.
   | UnboundVariable Iden -- ^ Encountered an undefined identifier.
 
+-- | Pretty-prints a type error.
 displayTypeError :: TypeError -> Text
 displayTypeError (InfiniteType tp1 tp2) =
   "cannot create the infinite type " <> displayType tp1 <> " = " <> displayType tp2
