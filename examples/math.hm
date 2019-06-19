@@ -1,0 +1,3 @@
+sub a b = add a (neg b)
+fact n = if (eq n 0) 1 (mul n (fact (sub n 1)))
+fib n = if (le n 1) 1 (add (fib (sub n 1)) (fib (sub n 2)))

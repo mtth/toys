@@ -1,0 +1,5 @@
+const a b = a
+flip a b c = a c b
+dot f g a = f (g a)
+fix f = let a = f a in a
+not b = if b False True
