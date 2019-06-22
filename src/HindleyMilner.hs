@@ -9,9 +9,8 @@
 --
 -- * "HindleyMilner.Parse", responsible for parsing text into expressions
 -- * "HindleyMilner.Infer", responsible for inferring the type of each expression
--- * "HindleyMilner.Eval", responsible for evaluating well-typed expressions
---
--- This last module also provides utilities for extending the implementation with new built-ins.
+-- * "HindleyMilner.Eval", responsible for evaluating well-typed expressions. This module also
+-- provides utilities for extending the implementation with new built-ins.
 module HindleyMilner (
   -- * Interpreter
   interpret,
@@ -23,7 +22,7 @@ module HindleyMilner (
   -- ** Values
   Value(..), Lit(..), displayLit,
   -- * Errors
-  ParsingError, TypeError(..), displayTypeError
+  ParsingError, displayParsingError, TypeError(..), displayTypeError
 ) where
 
 import HindleyMilner.Eval

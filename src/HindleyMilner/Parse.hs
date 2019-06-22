@@ -12,7 +12,7 @@ module HindleyMilner.Parse (
   -- * Expression types
   Expr(..), Iden, Lit(..), displayLit, Binding(..),
   -- * Parsing
-  Parser, exprParser, bindingParser, ParsingError
+  Parser, exprParser, bindingParser, ParsingError, displayParsingError
 ) where
 
 import Control.Applicative ((<|>), empty, many)
@@ -68,6 +68,10 @@ type Parser a = P.Parsec Void Text a
 
 -- | Error thrown during parsing.
 type ParsingError = P.ParseErrorBundle Text Void
+
+-- | Pretty-prints a parsing error.
+displayParsingError :: ParsingError -> Text
+displayParsingError = T.pack . P.errorBundlePretty
 
 whitespace :: Parser ()
 whitespace = PL.space P.space1 empty empty

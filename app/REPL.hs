@@ -16,7 +16,6 @@ import Control.Monad.State (evalStateT, get)
 import Control.Monad.IO.Class (liftIO)
 import Data.Foldable (foldlM)
 import qualified Data.Text.IO as T
-import qualified Text.Megaparsec as P
 import System.Environment (getArgs)
 import System.IO (IOMode(..), hFlush, hIsEOF, stdout, withFile)
 
@@ -37,5 +36,5 @@ main = getEnv >>= evalStateT (forever go) where
       Computation (ClosureV _) -> putStrLn "<closure>"
       Computation (UndefinedV) -> putStrLn "<undefined>"
       BoundIdentifier iden tp -> T.putStrLn $ iden <> " :: " <> displayType tp
-      InvalidSyntax err -> putStrLn $ "syntax error: " <> P.errorBundlePretty err
+      InvalidSyntax err -> T.putStrLn $ "syntax error: " <> displayParsingError err
       InvalidType err -> T.putStrLn $ "type error: " <> displayTypeError err

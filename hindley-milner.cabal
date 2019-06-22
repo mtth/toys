@@ -1,5 +1,5 @@
 name:                hindley-milner
-version:             0.0.2.0
+version:             0.0.2.1
 synopsis:            Toy Hindley-Milner implementation
 homepage:            https://github.com/mtth/hindley-milner
 license:             BSD3
@@ -35,7 +35,6 @@ executable hindley-milner-repl
   build-depends:       base >= 4.7
                      , containers >= 0.6
                      , hindley-milner
-                     , megaparsec >= 7.0
                      , mtl >= 2.2
                      , text >= 1.2
   ghc-options:         -Wall
