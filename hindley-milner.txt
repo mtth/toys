@@ -6,7 +6,7 @@
 --   
 --   Toy Hindley-Milner implementation
 @package hindley-milner
-@version 0.0.2.0
+@version 0.0.2.1
 
 
 -- | This module implements parsers for our language. It is the first step
@@ -94,6 +94,9 @@ bindingParser :: Parser Binding
 
 -- | Error thrown during parsing.
 type ParsingError = ParseErrorBundle Text Void
+
+-- | Pretty-prints a parsing error.
+displayParsingError :: ParsingError -> Text
 instance GHC.Show.Show HindleyMilner.Parse.Expr
 instance GHC.Classes.Ord HindleyMilner.Parse.Expr
 instance GHC.Classes.Eq HindleyMilner.Parse.Expr
@@ -248,11 +251,9 @@ instance GHC.Base.Monoid HindleyMilner.Eval.Env
 --   <li><a>HindleyMilner.Infer</a>, responsible for inferring the type of
 --   each expression</li>
 --   <li><a>HindleyMilner.Eval</a>, responsible for evaluating well-typed
---   expressions</li>
+--   expressions. This module also provides utilities for extending the
+--   implementation with new built-ins.</li>
 --   </ul>
---   
---   This last module also provides utilities for extending the
---   implementation with new built-ins.
 module HindleyMilner
 
 -- | Interpret a command.
@@ -340,6 +341,9 @@ displayLit :: Lit -> Text
 
 -- | Error thrown during parsing.
 type ParsingError = ParseErrorBundle Text Void
+
+-- | Pretty-prints a parsing error.
+displayParsingError :: ParsingError -> Text
 
 -- | Error thrown when an expression is ill-typed.
 data TypeError
