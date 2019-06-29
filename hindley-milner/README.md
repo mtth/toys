@@ -21,7 +21,8 @@ hm> dot incr incr 0
 ```
 
 See the `examples/` folder for a few more sample definitions and the [Haddock
-documentation](https://mtth.github.io/hindley-milner) for more information.
+documentation](https://mtth.github.io/toys/hindley-milner/) for more
+information.
 
 ## References
 
