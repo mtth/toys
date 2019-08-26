@@ -34,7 +34,7 @@ import Control.Monad.Reader (asks, local)
 import Control.Monad.RWS.Strict (RWST, evalRWST)
 import Control.Monad.State.Strict (StateT, evalState, evalStateT, get, gets, modify, put)
 import Control.Monad.Writer (tell)
-import Data.Foldable (toList)
+import Data.Foldable (foldr, toList)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Set (Set)
@@ -174,13 +174,16 @@ discover (LambdaE iden body) = do
   bodyTp <- local (envForType iden argTp <>) $ discover body
   pure $ ArrowT argTp bodyTp
 discover (LetE (Binding refIden argIdens expr) ret) = do
-  argTps <- traverse (\iden -> (iden,) <$> fresh) argIdens
+  args <- traverse (\iden -> (iden,) <$> fresh) argIdens
   refTp <- fresh
   let
-    vars = (\(_, VarT var) -> var) <$> argTps
-    env = mconcat (uncurry envForType <$> argTps) <> envForType refIden refTp
+    vars = (\(_, VarT var) -> var) <$> args
+    env = mconcat (uncurry envForType <$> args) <> envForType refIden refTp
   sch <- ForAll vars <$> local (env <>) (discover expr)
-  local (envForScheme refIden sch <>) (discover ret)
+  local (envForScheme refIden sch <>) $ do
+    retTp <- discover ret
+    constrain refTp $ foldr ArrowT retTp (fmap snd args)
+    pure retTp
 
 -- | Checks whether a variable is present inside a type.
 occurs :: TypeVar -> Type -> Bool

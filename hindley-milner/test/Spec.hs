@@ -58,7 +58,9 @@ main = hspec $ do
       inferType "let b = False in b" `shouldBe` Right "Bool"
     it "should infer the identity function's type" $
       inferType "let f x = x in f" `shouldBe` Right "$1 -> $1"
-    it "should infer the identity function's type" $
+    it "should infer the identity function's type particularized to string" $
       inferType "let f x = x in f \"foo\"" `shouldBe` Right "String"
     it "should infer the type of a higher order function" $
       inferType "let f g = g \"foobar\" in f" `shouldBe` Right "(String -> $1) -> $1"
+    it "should infer the type of fix" $
+      inferType "let fix f = let a = f a in a in fix" `shouldBe` Right "($1 -> $1) -> $1"
