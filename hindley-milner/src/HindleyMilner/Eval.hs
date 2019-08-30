@@ -26,8 +26,8 @@ import qualified Data.Map.Strict as Map
 --
 -- A few things to note:
 --
--- * We don't return informative errors here (in fact were 'error' out...)  since all errors should
--- be handled at type inference time.
+-- * We don't return informative errors here (in fact we 'error' out...)  since all errors should be
+-- handled at type inference time.
 -- * The underlying reader monad is strict, we rely on the 'LazyValue' type below to enable lazy
 -- evaluation.
 type Eval a = Reader ValueEnv a
@@ -86,11 +86,11 @@ envLookup iden (Env tpEnv valEnv) =
 -- | Generates an environment with a single identifier bound. The type and value must match, no
 -- checks are performed.
 --
--- This is useful in combination to add "built-in" functionality. For example, to generate an
--- environment with a 'sin' operation, we could do something similar to:
+-- This is useful to add "built-in" functionality. For example to generate an environment with a
+-- 'sin' operation, we could do something similar to:
 --
 -- > env = unsafeEnv "sin" (tp, ClosureV fn) where
--- >   tp = doubleType -> doubleType
+-- >   tp = doubleType `ArrowT` doubleType
 -- >   fn (LitV (DoubleL d)) = LitV $ DoubleL $ sin d
 -- >   fn _ = UndefinedV
 unsafeEnv :: Iden -> (Type, Value) -> Env

@@ -134,6 +134,5 @@ exprParser = whitespace >> exprP where
   termP = parens exprP <|> P.try letP <|> P.try (LitE <$> litParser) <|> varP
   exprP = do
     t <- termP
-    many (P.try termP) >>= \case
-      [] -> pure t
-      ts -> pure $ foldl AppE t ts
+    ts <- many $ P.try termP
+    pure $ foldl AppE t ts
