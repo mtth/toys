@@ -1,0 +1,52 @@
+cabal-version: 1.12
+name:           tetris
+version:        0.0.1.0
+description:    Tetris, a game
+homepage:       https://github.com/mtth/toys/tetris
+author:         Matthieu Monsch
+maintainer:     mtth@apache.org
+copyright:      2019 Matthieu Monsch
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/mtth/toys
+
+library
+  exposed-modules:
+      Tetris
+      Tetris.Board
+  other-modules:
+      Paths_tetris
+  hs-source-dirs:
+      src
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , more-containers
+    , random >= 1.1
+    , yx >= 0.0.3.0
+  default-language: Haskell2010
+
+executable tetris
+  main-is: Main.hs
+  other-modules:
+      Paths_tetris
+  hs-source-dirs:
+      app
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , gloss
+    , tetris
+    , yx >= 0.0.3.0
+  default-language: Haskell2010
