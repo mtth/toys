@@ -224,13 +224,13 @@ bind :: Binding -> Env -> Either TypeError Env
 -- | Generates an environment with a single identifier bound. The type and
 --   value must match, no checks are performed.
 --   
---   This is useful in combination to add "built-in" functionality. For
---   example, to generate an environment with a <a>sin</a> operation, we
---   could do something similar to:
+--   This is useful to add "built-in" functionality. For example to
+--   generate an environment with a <a>sin</a> operation, we could do
+--   something similar to:
 --   
 --   <pre>
 --   env = unsafeEnv "sin" (tp, ClosureV fn) where
---     tp = doubleType -&gt; doubleType
+--     tp = doubleType `ArrowT` doubleType
 --     fn (LitV (DoubleL d)) = LitV $ DoubleL $ sin d
 --     fn _ = UndefinedV
 --   </pre>
