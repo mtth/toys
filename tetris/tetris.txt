@@ -7,18 +7,46 @@
 @version 0.0.1.0
 
 module Tetris.Board
-data Board
-newBoard :: YX -> Maybe Board
-boardCoords :: Board -> Set YX
-boardWidth :: Board -> Int
+
+-- | A Tetris piece.
+--   
+--   Pieces are generated via <a>randomPiece</a>.
 data Piece
-Piece :: Angle -> YX -> Tetromino -> Piece
+
+-- | Generates a random piece in the given column.
 randomPiece :: Int -> IO Piece
-freezePiece :: Piece -> Board -> (Int, Board)
+
+-- | Moves a piece by the given 2D offset.
 movePiece :: YX -> Piece -> Piece
+
+-- | Rotates a piece clockwise 90 degrees..
 rotatePiece :: Piece -> Piece
+
+-- | Returns the piece's coordinates.
 pieceCoords :: Piece -> Set YX
+
+-- | A rectangular Tetris board.
+data Board
+
+-- | Creates a new board with the given position as extreme point. If at
+--   least one of the given position's fields is negative, the function
+--   will return <a>Nothing</a>.
+newBoard :: YX -> Maybe Board
+
+-- | Returns the coordinates of all populated positions inside the board.
+boardCoords :: Board -> Set YX
+
+-- | Returns the number of columns in the board.
+boardWidth :: Board -> Int
+
+-- | Checks whether the given piece fits on the board (i.e. within the
+--   boundaries of the board and doesn't overlap with any existing pieces).
 fitsOn :: Piece -> Board -> Bool
+
+-- | Adds the piece to the board, clearing any newly filled rows. This
+--   function returns the number of cleared rows along with the updated
+--   board.
+freezePiece :: Piece -> Board -> (Int, Board)
 instance GHC.Show.Show Tetris.Board.Piece
 instance GHC.Classes.Eq Tetris.Board.Piece
 instance GHC.Show.Show Tetris.Board.Tetromino
