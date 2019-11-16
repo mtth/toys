@@ -29,8 +29,11 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , logging-effect
     , more-containers
     , random >= 1.1
+    , text
+    , text-format
     , yx >= 0.0.3.0
   default-language: Haskell2010
 
@@ -47,6 +50,9 @@ executable tetris
     , bytestring
     , containers
     , gloss
+    , logging-effect
     , tetris
+    , text
+    , text-format
     , yx >= 0.0.3.0
   default-language: Haskell2010

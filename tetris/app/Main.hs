@@ -1,11 +1,15 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
 import Tetris
 
+import Control.Monad.Log (WithSeverity(..), renderWithSeverity, runLoggingT)
 import Data.Foldable (toList)
 import qualified Data.Geometry.YX as YX
+import qualified Data.Text.Format as LT
+import Data.Text.Lazy (Text)
 import Graphics.Gloss (Display(..), Picture, color, greyN, makeColorI, pictures, rectangleSolid, scale, text, translate)
 import Graphics.Gloss.Interface.IO.Game (Event(..), Key(..), KeyState(..), SpecialKey(..), playIO)
 import System.Exit (ExitCode(..), exitWith)
@@ -38,16 +42,19 @@ userInput = go where
   go (SpecialKey KeyEsc) = Exit
   go _ = BadInput
 
+printWithSeverity :: WithSeverity Text -> IO ()
+printWithSeverity w = LT.print "[{}]\t{}\n" (LT.Shown (msgSeverity w), discardSeverity w)
+
 onEvent :: Event -> Game -> IO Game
 onEvent event game = case event of
   EventKey key Down _ _ -> case userInput key of
-    UserAction action -> pure $ onAction action game
+    UserAction action -> runLoggingT (onAction action game) printWithSeverity
     Exit -> exitWith ExitSuccess
     _ -> pure game
   _ -> pure game
 
 onIteration :: Game -> IO Game
-onIteration game = onTick game >>= \case
+onIteration game = runLoggingT (onTick game) printWithSeverity >>= \case
   Right game' -> pure game'
   Left _ -> exitWith (ExitFailure 1) -- TODO: Show score.
 

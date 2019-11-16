@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | A simple Tetris implementation.
 module Tetris (
@@ -9,10 +11,14 @@ module Tetris (
 
 import Tetris.Board
 
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Control.Monad.Log (MonadLog, WithSeverity, logDebug, logInfo, logWarning)
 import Data.Geometry.YX (YX)
 import qualified Data.Geometry.YX as YX
 import Data.Set (Set)
 import qualified Data.Set as Set
+import qualified Data.Text.Format as T
+import Data.Text.Lazy (Text)
 
 -- | A Tetris game's state.
 data Game = Game
@@ -53,18 +59,23 @@ data Action
  | MoveLeft
  | MoveRight
  | Rotate
+ deriving (Eq, Ord, Enum, Bounded, Show)
 
 -- | Updates the state of a game with a user's action. If the user's action is invalid (e.g. moving
 -- a piece out of bounds), the game's state will remain unchanged.
-onAction :: Action -> Game -> Game
+onAction :: MonadLog (WithSeverity Text) m => Action -> Game -> m Game
 onAction action game = tryMove (actionMove action) where
   tryMove fn =
     let
       board = _gameBoard game
       piece = fn $ _gamePiece game
     in if piece `fitsOn` board
-      then game { _gamePiece = piece }
-      else game
+      then do
+        logDebug $ T.format "Applying {} to {}." (T.Shown action, T.Shown piece)
+        pure game { _gamePiece = piece }
+      else do
+        logWarning $ T.format "Can't apply {} to {}, ignoring." (T.Shown action, T.Shown piece)
+        pure game
   actionMove MoveDown = movePiece YX.down
   actionMove MoveLeft = movePiece YX.left
   actionMove MoveRight = movePiece YX.right
@@ -79,22 +90,28 @@ onAction action game = tryMove (actionMove action) where
 -- * Clears all newly full rows, increasing the score and shifting other rows correspondingly.
 -- * Generates a new random piece, if this is not possible the game is over and the function returns
 -- the game's final score instead of the updated state.
-onTick :: Game -> IO (Either Score Game)
+onTick :: (MonadIO m, MonadLog (WithSeverity Text) m) => Game -> m (Either Score Game)
 onTick game = do
   let
     oldPiece = _gamePiece game
     oldBoard = _gameBoard game
     movedPiece = movePiece YX.down oldPiece
   if movedPiece `fitsOn` oldBoard
-    then pure $ Right game { _gamePiece = movedPiece }
+    then do
+      logDebug $ T.format "Shifting {} down." (T.Only (T.Shown oldPiece))
+      pure $ Right game { _gamePiece = movedPiece }
     else do
       let
         (numLines, newBoard) = freezePiece oldPiece oldBoard
         newScore = _gameScore game + numLines
-      newPiece <- randomPiece (boardWidth oldBoard `div` 2)
-      pure $ if newPiece `fitsOn` newBoard
-        then Right game
+      logInfo $
+        T.format "{} can't move down, freezing it (clearing {} lines)." (T.Shown oldPiece, numLines)
+      newPiece <- liftIO $ randomPiece (boardWidth oldBoard `div` 2)
+      if newPiece `fitsOn` newBoard
+        then pure $ Right game
           { _gamePiece = newPiece
           , _gameBoard = newBoard
           , _gameScore = newScore }
-        else Left $ Score newScore
+        else do
+          logInfo "New piece does not fit in the board, the game is over!"
+          pure . Left $ Score newScore
