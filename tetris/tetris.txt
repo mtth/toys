@@ -56,18 +56,54 @@ instance GHC.Enum.Bounded Tetris.Board.Tetromino
 instance GHC.Show.Show Tetris.Board.Board
 instance GHC.Classes.Eq Tetris.Board.Board
 
+
+-- | A simple Tetris implementation.
 module Tetris
+
+-- | A Tetris game's state.
 data Game
+
+-- | Generates a new gave with the given extent. For example, a game with
+--   height 24 and width 10 (the standard) can be generated with
+--   <tt>newGame (YX 24 10)</tt>.
 newGame :: YX -> IO (Maybe Game)
+
+-- | Returns the active piece's coordinates.
 activeCoords :: Game -> Set YX
+
+-- | Returns the coordinates of all inactive pieces.
 frozenCoords :: Game -> Set YX
+
+-- | A user action.
 data Action
 MoveDown :: Action
 MoveLeft :: Action
 MoveRight :: Action
 Rotate :: Action
+
+-- | Updates the state of a game with a user's action. If the user's action
+--   is invalid (e.g. moving a piece out of bounds), the game's state will
+--   remain unchanged.
 onAction :: Action -> Game -> Game
+
+-- | A thin wrapper around a game's score.
 newtype Score
 Score :: Int -> Score
+
+-- | Returns the number of full rows cleared so far.
 currentScore :: Game -> Score
+
+-- | Updates the state of the game with the passage of time. More
+--   precisely, the following actions are performed in order:
+--   
+--   <ul>
+--   <li>Attempts to move the active piece down. If this is a valid move,
+--   the function simply returns the updated game's state.</li>
+--   <li>Freezes the active piece.</li>
+--   <li>Clears all newly full rows, increasing the score and shifting
+--   other rows correspondingly.</li>
+--   <li>Generates a new random piece, if this is not possible the game is
+--   over and the function returns the game's final score instead of the
+--   updated state.</li>
+--   </ul>
 onTick :: Game -> IO (Either Score Game)
