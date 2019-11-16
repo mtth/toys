@@ -10,15 +10,16 @@ import Graphics.Gloss (Display(..), Picture, color, greyN, makeColorI, pictures,
 import Graphics.Gloss.Interface.IO.Game (Event(..), Key(..), KeyState(..), SpecialKey(..), playIO)
 import System.Exit (ExitCode(..), exitWith)
 
--- Number of blocks per row and column.
-numRows, numCols :: Int
-numRows = 24
-numCols = 10
-
+-- A few colors used below.
 blue = makeColorI 72 133 237 255
 green = makeColorI 60 186 84 255
 red = makeColorI 219 50 54 255
 yellow = makeColorI 244 194 13 255
+
+-- Number of rows and columns in the board.
+numRows, numCols :: Int
+numRows = 24
+numCols = 10
 
 -- Size of a block in pixels.
 blockSize, height, width :: Float
@@ -61,12 +62,12 @@ drawGame game = pure $ pictures [backPic, activePic, frozenPic, scorePic] where
     scale 0.2 0.2 . color red . text $
     "score: " ++ show num
   backPic = color (greyN 0.9) $ rectangleSolid width height
-  activePic = drawCoords green $ activeCoords game
-  frozenPic = drawCoords blue $ frozenCoords game
-  drawCoords col = pictures . fmap drawCoord . toList where
+  activePic = color green $ drawCoords $ activeCoords game
+  frozenPic = color blue $ drawCoords $ frozenCoords game
+  drawCoords = pictures . fmap drawCoord . toList where
     drawCoord (YX.YX y x) =
       let
-        rect = color col (rectangleSolid (toSize 1) (toSize 1))
+        rect = rectangleSolid (toSize 1) (toSize 1)
         xPos = toSize x - (width - blockSize) / 2
         yPos = toSize (numRows - 1 - y) - (height - blockSize) / 2
       in translate xPos yPos rect
@@ -78,4 +79,4 @@ main = do
     size = (ceiling width + padding, ceiling height + padding)
     display = InWindow "Tetris" size (0, 0)
   Just game <- newGame (YX.YX (numRows - 1) (numCols - 1))
-  playIO display (greyN 0.8) 10 game drawGame onEvent (const onIteration)
+  playIO display (greyN 0.8) 2 game drawGame onEvent (const onIteration)

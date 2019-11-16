@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 
+-- | A simple Tetris implementation.
 module Tetris (
   Game, newGame, activeCoords, frozenCoords,
   Action(..), onAction,
@@ -13,12 +14,15 @@ import qualified Data.Geometry.YX as YX
 import Data.Set (Set)
 import qualified Data.Set as Set
 
+-- | A Tetris game's state.
 data Game = Game
   { _gameScore :: Int
   , _gameBoard :: Board
   , _gamePiece :: Piece
   }
 
+-- | Generates a new gave with the given extent. For example, a game with height 24 and width 10
+-- (the standard) can be generated with @newGame (YX 24 10)@.
 newGame :: YX -> IO (Maybe Game)
 newGame extent = case newBoard extent of
   Just board -> do
@@ -28,23 +32,30 @@ newGame extent = case newBoard extent of
       else Nothing
   _ -> pure Nothing
 
+-- | A thin wrapper around a game's score.
 newtype Score = Score Int
 
+-- | Returns the number of full rows cleared so far.
 currentScore :: Game -> Score
 currentScore = Score . _gameScore
 
+-- | Returns the active piece's coordinates.
 activeCoords :: Game -> Set YX
 activeCoords = pieceCoords . _gamePiece
 
+-- | Returns the coordinates of all inactive pieces.
 frozenCoords :: Game -> Set YX
 frozenCoords = boardCoords . _gameBoard
 
+-- | A user action.
 data Action
  = MoveDown
  | MoveLeft
  | MoveRight
  | Rotate
 
+-- | Updates the state of a game with a user's action. If the user's action is invalid (e.g. moving
+-- a piece out of bounds), the game's state will remain unchanged.
 onAction :: Action -> Game -> Game
 onAction action game = tryMove (actionMove action) where
   tryMove fn =
@@ -59,12 +70,21 @@ onAction action game = tryMove (actionMove action) where
   actionMove MoveRight = movePiece YX.right
   actionMove Rotate = rotatePiece
 
+-- | Updates the state of the game with the passage of time. More precisely, the following actions
+-- are performed in order:
+--
+-- * Attempts to move the active piece down. If this is a valid move, the function simply returns
+-- the updated game's state.
+-- * Freezes the active piece.
+-- * Clears all newly full rows, increasing the score and shifting other rows correspondingly.
+-- * Generates a new random piece, if this is not possible the game is over and the function returns
+-- the game's final score instead of the updated state.
 onTick :: Game -> IO (Either Score Game)
 onTick game = do
   let
     oldPiece = _gamePiece game
     oldBoard = _gameBoard game
-  let movedPiece = movePiece YX.down oldPiece
+    movedPiece = movePiece YX.down oldPiece
   if movedPiece `fitsOn` oldBoard
     then pure $ Right game { _gamePiece = movedPiece }
     else do

@@ -16,3 +16,6 @@ The following commands are supported:
 + `l` to move it right,
 + `f` to rotate it (clockwise),
 + `<esc>` to quit.
+
+The underlying library's documentation is available
+[here](https://mtth.github.io/toys/tetris).
