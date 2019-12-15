@@ -7,7 +7,7 @@ module Bananagrams.Grid (
   -- * Construction
   Grid, newGrid,
   -- * Accessors
-  Entry(..), Orientation(..), gridEntries,
+  Entry(..), Orientation(..), orientationYX, gridEntries,
   -- * Modification
   -- ** Primitives
   Conflict(..), setEntry, unsetLastEntry,
@@ -131,8 +131,8 @@ data Grid s
     { _gridEntries :: !(STRef s (Seq Entry))
     , _gridArray :: !(STUArray s YX Letter) }
 
-gridEntries :: Grid s -> ST s (Seq Entry)
-gridEntries (Grid ref _) = readSTRef ref
+gridEntries :: Grid s -> ST s [Entry]
+gridEntries (Grid ref _) = toList <$> readSTRef ref
 
 -- | Generates a new grid of edge length @2*n+1@, centered around 0.
 newGrid :: Int -> ST s (Grid s)
@@ -165,7 +165,7 @@ setEntry entry@(Entry txt orient start) (Grid entriesRef arr) = do
           Nothing -> pure . Just $ Conflict yx (letterChar letter) char
           Just letter' -> do
             MArray.writeArray arr yx letter'
-            -- for_ (neighbors yx) $ \yx' -> modifyArray arr yx' addNeighbor
+            for_ (neighbors yx) $ \yx' -> modifyArray arr yx' addNeighbor
             setChars chars' (yx + dyx)
       [] -> do
         modifySTRef' entriesRef (Seq.|> entry)
@@ -173,10 +173,10 @@ setEntry entry@(Entry txt orient start) (Grid entriesRef arr) = do
   setChars (T.unpack txt) start
 
 -- | Removes the last added entry, or does nothing if the grid doesn't contain any entries.
-unsetLastEntry :: Grid s -> ST s ()
+unsetLastEntry :: Grid s -> ST s (Maybe Entry)
 unsetLastEntry (Grid entriesRef arr) = readSTRef entriesRef >>= \case
-  Seq.Empty -> pure ()
-  entries' Seq.:|> (Entry txt orient start) -> do
+  Seq.Empty -> pure Nothing
+  entries' Seq.:|> entry@(Entry txt orient start) -> do
     let
       dyx = orientationYX orient
       unsetChars n yx = if n == 0
@@ -187,6 +187,7 @@ unsetLastEntry (Grid entriesRef arr) = readSTRef entriesRef >>= \case
           unsetChars (n - 1) (yx + dyx)
     writeSTRef entriesRef entries'
     unsetChars (T.length txt) start
+    pure $ Just entry
 
 data GridValue
   = GridValue

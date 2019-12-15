@@ -14,6 +14,7 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import qualified Flags.Applicative as FA
 
 import Bananagrams
@@ -32,22 +33,15 @@ flagsParser =
     <$> (FA.flag stringVal "dictionary_path" "path to words" <|> pure "/usr/share/dict/words")
     <*> (Multiset.fromList <$> FA.flag stringVal "letters" "available letters")
 
--- | Returns the set of words which can be spelled using the given letters.
-allowedWords :: FilePath -> Multiset Char -> IO (Set Text)
-allowedWords path letters = Set.fromList . fmap T.pack . filter isAllowed <$> candidates where
-  candidates = lines <$> readFile path
-  isAllowed word = Multiset.fromList word `Multiset.isSubsetOf` letters
+readDict :: FilePath -> IO Dictionary
+readDict path = newDictionary . T.lines <$> T.readFile path
 
 main :: IO ()
 main = do
   (flags, _) <- FA.parseSystemFlagsOrDie flagsParser
-  let
-    entries =
-      [ Entry "food" Horizontal 0
-      , Entry "feed" Horizontal (YX 3 0)
-      , Entry "hi" Horizontal (YX 0 6)
-      , Entry "hi" Horizontal (YX 3 6)
-      , Entry "oie" Vertical (YX 0 1 )]
-  case displayEntries entries of
-    Left conflict -> print "conflict"
-    Right bs -> BS.putStrLn bs
+  dict <- readDict $ dictionaryPath flags
+  case solve dict (availableLetters flags) of
+    Just entries -> case displayEntries entries of
+      Left conflict -> print "conflict"
+      Right bs -> BS.putStrLn bs
+    Nothing -> putStrLn "unsolved"
