@@ -86,10 +86,10 @@ letterCount letter = fromIntegral $ shiftR letter 8 .&. 15
 
 -- | Returns a letter updated to contain the character. If the letter was already populated (i.e.
 -- had a positive 'letterCount') with a different character or if called more than 31 times,
--- 'setChar' will 'error' out.
+-- 'setChar' will return 'Nothing'.
 setChar :: Char -> Letter -> Maybe Letter
 setChar char letter =
-  let -- TODO: Error when count == 31.
+  let
     char' = letterChar letter
     letter' = fromIntegral $ ord char
   in if char' == ' '
@@ -136,7 +136,7 @@ data Grid s
 gridEntries :: Grid s -> ST s (Seq Entry)
 gridEntries (Grid ref _) = readSTRef ref
 
--- | Generates a new grid of edge length @2*n+1@.
+-- | Generates a new grid of edge length @2*n+1@, centered around 0.
 newGrid :: Int -> ST s (Grid s)
 newGrid size =
   let yx = YX size size
