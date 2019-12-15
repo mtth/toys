@@ -6,6 +6,8 @@
 module Main where
 
 import Control.Applicative ((<|>))
+import qualified Data.ByteString.Char8 as BS
+import Data.Geometry.YX (YX(YX))
 import Data.Multiset (Multiset)
 import qualified Data.Multiset as Multiset
 import Data.Set (Set)
@@ -14,7 +16,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Flags.Applicative as FA
 
--- import Bananagrams
+import Bananagrams
 
 -- | The command's input flags.
 data Flags
@@ -39,4 +41,13 @@ allowedWords path letters = Set.fromList . fmap T.pack . filter isAllowed <$> ca
 main :: IO ()
 main = do
   (flags, _) <- FA.parseSystemFlagsOrDie flagsParser
-  print flags
+  let
+    entries =
+      [ Entry "food" Horizontal 0
+      , Entry "feed" Horizontal (YX 3 0)
+      , Entry "hi" Horizontal (YX 0 6)
+      , Entry "hi" Horizontal (YX 3 6)
+      , Entry "oie" Vertical (YX 0 1 )]
+  case displayEntries entries of
+    Left conflict -> print "conflict"
+    Right bs -> BS.putStrLn bs

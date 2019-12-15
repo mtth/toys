@@ -32,6 +32,8 @@ library
     -- , logging-effect
     , more-containers
     , text
+    , vector
+    , vector-algorithms
     , yx >= 0.0.3.0
   default-language: Haskell2010
 
@@ -43,8 +45,10 @@ executable bananagrams
   build-depends:
       bananagrams
     , base >=4.7 && <5
+    , bytestring
     , containers
     , flags-applicative
     , more-containers
     , text
+    , yx >= 0.0.3.0
   default-language: Haskell2010

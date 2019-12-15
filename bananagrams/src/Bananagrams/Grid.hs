@@ -14,7 +14,7 @@ module Bananagrams.Grid (
   -- ** Candidate locations
   Candidate(..), candidates,
   -- * Debugging
-  displayGrid
+  displayEntries
 ) where
 
 import Algebra.Lattice (joins1, meets1)
@@ -91,12 +91,10 @@ setChar :: Char -> Letter -> Maybe Letter
 setChar char letter =
   let
     char' = letterChar letter
-    letter' = fromIntegral $ ord char
-  in if char' == ' '
+    letter' = (letter .&. 65280) + 256 + fromIntegral (ord char)
+  in if char' == ' ' || char' == char
     then Just letter'
-    else if char' /= char
-      then Nothing
-      else Just $ letter + 256
+    else Nothing
 
 unsetChar :: Letter -> Letter
 unsetChar letter = letter - 256
@@ -139,7 +137,7 @@ gridEntries (Grid ref _) = readSTRef ref
 -- | Generates a new grid of edge length @2*n+1@, centered around 0.
 newGrid :: Int -> ST s (Grid s)
 newGrid size =
-  let yx = YX size size
+  let yx = YX (size + 1) (size + 1) -- Pad by 1 to simplify neighbor handling.
   in Grid <$> newSTRef Seq.empty <*> MArray.newArray (-yx, yx) unknownLetter
 
 modifyArray :: MArray.MArray a e m => a YX e -> YX -> (e -> e) -> m ()
@@ -167,7 +165,7 @@ setEntry entry@(Entry txt orient start) (Grid entriesRef arr) = do
           Nothing -> pure . Just $ Conflict yx (letterChar letter) char
           Just letter' -> do
             MArray.writeArray arr yx letter'
-            for_ (neighbors yx) $ \yx' -> modifyArray arr yx' addNeighbor
+            -- for_ (neighbors yx) $ \yx' -> modifyArray arr yx' addNeighbor
             setChars chars' (yx + dyx)
       [] -> do
         modifySTRef' entriesRef (Seq.|> entry)
@@ -235,7 +233,6 @@ candidates grid = catMaybes . fmap toCand <$> gridValues grid where
   toCand (GridValue yx char 1 0 orient) = Just $ Candidate yx (otherOrientation orient) Map.empty
   toCand _ = Nothing
 
--- | Returns a human-readable representation of the grid.
 displayGrid :: Grid s -> ST s ByteString
 displayGrid (Grid entries arr) = fmap entriesBox (readSTRef entries) >>= \case
   Nothing -> pure ""
@@ -243,3 +240,16 @@ displayGrid (Grid entries arr) = fmap entriesBox (readSTRef entries) >>= \case
     arr' <- Array.unsafeFreeze arr
     let subArr = IArray.ixmap (YX.topLeft box, YX.bottomRight box) id arr' :: UArray YX Letter
     pure $ YX.arrayToByteString letterChar subArr
+
+-- | Returns a human-readable representation of the entries.
+displayEntries :: [Entry] -> Either Conflict ByteString
+displayEntries entries =
+  let yxs = concat $ fmap (\e -> [entryStart e, entryEnd e]) entries
+  in case concat $ fmap (\(YX y x) -> [abs x, abs y]) yxs of
+    [] -> Right ""
+    vs -> runST $ do
+        grid <- newGrid $ maximum vs
+        conflicts <- catMaybes <$> traverse (\e -> setEntry e grid) entries
+        case conflicts of
+          [] -> Right <$> displayGrid grid
+          conflict : _ -> pure $ Left conflict

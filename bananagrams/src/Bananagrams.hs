@@ -5,7 +5,9 @@
 -- words in the same direction are not adjacent, and therefore might fail to find a solution even if
 -- one exists (this is however unlikely in realistic examples).
 module Bananagrams (
-  Hand, newHand
+  solve,
+  Dictionary, newDictionary,
+  Entry(..), Orientation(..), displayEntries
 ) where
 
 import Data.Map.Strict (Map)
@@ -15,11 +17,5 @@ import Data.Text (Text)
 import Bananagrams.Dictionary
 import Bananagrams.Grid
 
-data Hand
-  = Hand
-    { handChars :: !(Multiset Char)
-    , handWords :: !(Map Text Double) }
-
--- | Generates a new 'Hand' for the given path and characters.
-newHand :: [Text] -> Multiset Char -> Hand
-newHand = undefined
+solve :: Multiset Char -> Dictionary -> [Entry]
+solve = undefined
