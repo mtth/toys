@@ -9,6 +9,13 @@
 
 -- | Bananagrams word selection
 module Bananagrams.Dictionary
+data Dictionary
+newDictionary :: [Text] -> Dictionary
+type Hand = Multiset Char
+
+-- | Returns the best words to use first given the allowed characters.
+firstWords :: Dictionary -> Hand -> [Text]
+matchingWords :: Dictionary -> Hand -> Map Int Char -> [(Text, Int)]
 
 
 -- | Bananagrams grid operations
@@ -31,7 +38,8 @@ Entry :: !Text -> !Orientation -> !YX -> Entry
 data Orientation
 Horizontal :: Orientation
 Vertical :: Orientation
-gridEntries :: Grid s -> ST s (Seq Entry)
+orientationYX :: Orientation -> YX
+gridEntries :: Grid s -> ST s [Entry]
 
 -- | A conflict when adding an entry.
 data Conflict
@@ -47,7 +55,7 @@ setEntry :: Entry -> Grid s -> ST s (Maybe Conflict)
 
 -- | Removes the last added entry, or does nothing if the grid doesn't
 --   contain any entries.
-unsetLastEntry :: Grid s -> ST s ()
+unsetLastEntry :: Grid s -> ST s (Maybe Entry)
 
 -- | A candidate grid location.
 data Candidate
@@ -69,8 +77,8 @@ Candidate :: !YX -> !Orientation -> !Map Int Char -> Candidate
 --   returned).
 candidates :: Grid s -> ST s [Candidate]
 
--- | Returns a human-readable representation of the grid.
-displayGrid :: Grid s -> ST s ByteString
+-- | Returns a human-readable representation of the entries.
+displayEntries :: [Entry] -> Either Conflict ByteString
 instance GHC.Show.Show Bananagrams.Grid.Candidate
 instance GHC.Classes.Ord Bananagrams.Grid.Candidate
 instance GHC.Classes.Eq Bananagrams.Grid.Candidate
@@ -98,7 +106,21 @@ instance GHC.Classes.Eq Bananagrams.Grid.Orientation
 --   solution even if one exists (this is however unlikely in realistic
 --   examples).
 module Bananagrams
-data Hand
+solve :: Dictionary -> Multiset Char -> Maybe [Entry]
+data Dictionary
+newDictionary :: [Text] -> Dictionary
 
--- | Generates a new <a>Hand</a> for the given path and characters.
-newHand :: [Text] -> Multiset Char -> Hand
+-- | A word entry inside a grid.
+data Entry
+Entry :: !Text -> !Orientation -> !YX -> Entry
+[entryText] :: Entry -> !Text
+[entryOrientation] :: Entry -> !Orientation
+[entryStart] :: Entry -> !YX
+
+-- | An entry's orientation.
+data Orientation
+Horizontal :: Orientation
+Vertical :: Orientation
+
+-- | Returns a human-readable representation of the entries.
+displayEntries :: [Entry] -> Either Conflict ByteString
