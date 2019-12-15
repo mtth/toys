@@ -34,7 +34,7 @@ flagsParser =
     <*> (Multiset.fromList <$> FA.flag stringVal "letters" "available letters")
 
 readDict :: FilePath -> IO Dictionary
-readDict path = newDictionary . T.lines <$> T.readFile path
+readDict path = newDictionary . filter ((> 2) . T.length) . T.lines <$> T.readFile path
 
 main :: IO ()
 main = do

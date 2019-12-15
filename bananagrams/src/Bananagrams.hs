@@ -42,7 +42,10 @@ entryChars = Multiset.fromList . T.unpack . entryText
 
 try :: Bananagrams s -> Entry -> ST s ()
 try (Bananagrams _ ref grid) entry = do
-  setEntry entry grid
+  setEntry entry grid >>= \case
+    Nothing -> pure ()
+    Just _ -> error "conflict"
+  -- TODO: Fix this, we shouldn't deduct characters that are reused by the entry.
   modifySTRef' ref (flip Multiset.difference $ entryChars entry)
 
 backtrack :: Bananagrams s -> ST s ()

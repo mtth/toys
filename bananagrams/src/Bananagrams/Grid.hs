@@ -109,7 +109,8 @@ delNeighbor :: Letter -> Letter
 delNeighbor letter = letter - 4096
 
 neighbors :: YX -> [YX]
-neighbors yx = fmap (+ yx) $ zipWith (+) YX.steps4 (tail $ cycle YX.steps4)
+neighbors yx =
+  fmap (+ yx) [YX.up + YX.left, YX.left + YX.down, YX.down + YX.right, YX.right + YX.up]
 
 -- | A word entry inside a grid.
 data Entry
@@ -137,7 +138,7 @@ gridEntries (Grid ref _) = toList <$> readSTRef ref
 -- | Generates a new grid of edge length @2*n+1@, centered around 0.
 newGrid :: Int -> ST s (Grid s)
 newGrid size =
-  let yx = YX (size + 1) (size + 1) -- Pad by 1 to simplify neighbor handling.
+  let yx = YX (size + 2) (size + 2) -- Pad to simplify neighbor handling.
   in Grid <$> newSTRef Seq.empty <*> MArray.newArray (-yx, yx) unknownLetter
 
 modifyArray :: MArray.MArray a e m => a YX e -> YX -> (e -> e) -> m ()
@@ -231,7 +232,8 @@ data Candidate
 -- not considered valid candidates (e.g. @T@ transforming @CAT@ into @CATS@ would not be returned).
 candidates :: Grid s -> ST s [Candidate]
 candidates grid = catMaybes . fmap toCand <$> gridValues grid where
-  toCand (GridValue yx char 1 0 orient) = Just $ Candidate yx (otherOrientation orient) Map.empty
+  toCand (GridValue yx char 1 0 orient) =
+    Just $ Candidate yx (otherOrientation orient) (Map.singleton 0 char) -- TODO: Add other chars.
   toCand _ = Nothing
 
 displayGrid :: Grid s -> ST s ByteString

@@ -51,7 +51,7 @@ itemOffsets spots (Item _ vec mset) =
     n = Vector.length vec - 1
     matches k = all (\(i, char) -> maybe True (== char) $ vec Vector.!? (i + k)) $ Map.toList spots
     isDisjoint k = Map.notMember (-(k + 1)) spots && Map.notMember (n - k + 1) spots
-    isSpellable n = True -- TODO
+    isSpellable n = True -- TODO: Should check that we have enough characters given matches.
   in filter (\k -> matches k && isDisjoint k && isSpellable k) [0..n]
 
 matchingWords :: Dictionary -> Hand -> Map Int Char -> [(Text, Int)]
