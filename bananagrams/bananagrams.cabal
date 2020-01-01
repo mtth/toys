@@ -1,45 +1,48 @@
 cabal-version: 1.12
-name:           bananagrams
-version:        0.0.1.0
-description:    Bananagrams, a game
-homepage:       https://github.com/mtth/toys/bananagrams
-author:         Matthieu Monsch
-maintainer:     mtth@apache.org
-copyright:      2019 Matthieu Monsch
-license:        BSD3
-license-file:   LICENSE
-build-type:     Simple
-extra-source-files:
-    README.md
+
+name: bananagrams
+version: 0.0.1.0
+description: Bananagrams, a game
+homepage: https://github.com/mtth/toys/bananagrams
+author: Matthieu Monsch
+maintainer: mtth@apache.org
+copyright: 2019 Matthieu Monsch
+license: BSD3
+license-file: LICENSE
+build-type: Simple
+extra-source-files: README.md
 
 source-repository head
   type: git
   location: https://github.com/mtth/toys
 
 library
+  hs-source-dirs: src
   exposed-modules:
       Bananagrams
-      Bananagrams.Dictionary
-      Bananagrams.Grid
-  hs-source-dirs:
-      src
+    , Bananagrams.Dictionary
+    , Bananagrams.Grid
+    , Bananagrams.Log
   build-depends:
       array
     , base >=4.7 && <5
     , bytestring
     , containers
     , lattices
+    , logging-effect
     , more-containers
+    , prettyprinter
     , text
+    , text-format
+    , time
     , vector
     , vector-algorithms
     , yx >= 0.0.3.0
   default-language: Haskell2010
 
 executable bananagrams
+  hs-source-dirs: app
   main-is: Main.hs
-  hs-source-dirs:
-      app
   ghc-options: -O2 -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       bananagrams
@@ -55,8 +58,7 @@ executable bananagrams
 test-suite bananagrams-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
-  hs-source-dirs:
-    test
+  hs-source-dirs: test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       bananagrams

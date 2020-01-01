@@ -14,7 +14,7 @@ module Bananagrams.Grid (
   -- ** Candidate locations
   Candidate(..), candidates,
   -- * Debugging
-  displayEntries
+  displayGrid, displayEntries
 ) where
 
 import Algebra.Lattice (joins1, meets1)
@@ -151,7 +151,8 @@ data Conflict
   = Conflict
     { conflictYX :: !YX
     , conflictOldChar :: Char
-    , conflictNewChar :: Char }
+    , conflictNewChar :: Char
+    } deriving Show
 
 -- | Attempts to add a new entry to the grid. Note that this method does *not* check that a word is
 -- valid. If the word is too long, this method will 'error'.

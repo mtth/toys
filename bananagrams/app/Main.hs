@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 -- To use it:
@@ -40,7 +41,7 @@ main :: IO ()
 main = do
   (flags, _) <- FA.parseSystemFlagsOrDie flagsParser
   dict <- readDict $ dictionaryPath flags
-  case solve dict (availableLetters flags) of
+  solve dict (availableLetters flags) >>= \case
     Just entries -> case displayEntries entries of
       Left conflict -> print "conflict"
       Right bs -> BS.putStrLn bs

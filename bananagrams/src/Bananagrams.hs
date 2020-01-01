@@ -1,4 +1,6 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- | A simple Bananagrams solver.
 --
@@ -13,7 +15,8 @@ module Bananagrams (
 ) where
 
 import Control.Applicative ((<|>), Alternative, empty)
-import Control.Monad.ST (ST, runST)
+import Control.Monad.Log (DiscardLoggingT(discardLogging))
+import Control.Monad.ST (RealWorld)
 import Data.Foldable (foldlM)
 import Data.Map.Strict (Map)
 import Data.Multiset (Multiset)
@@ -21,53 +24,69 @@ import qualified Data.Multiset as Multiset
 import Data.STRef (STRef, newSTRef, modifySTRef', readSTRef)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Text.Encoding (decodeLatin1)
 
 import Bananagrams.Dictionary
 import Bananagrams.Grid
+import Bananagrams.Log
 
-firstJust :: (Alternative g, Foldable f, Monad m) => (a -> m (g b)) -> f a -> m (g b)
-firstJust f = foldlM (\g a -> (g <|>) <$> f a) empty
+firstJust :: (Foldable f, Monad m) => (a -> m (Maybe b)) -> f a -> m (Maybe b)
+firstJust f = foldlM (\mb a -> case mb of { Just _ -> pure mb ; Nothing -> f a }) empty
 
-data Bananagrams s
+data Bananagrams
   = Bananagrams
     { dict :: Dictionary
-    , handRef :: STRef s Hand
-    , grid :: Grid s }
+    , handRef :: STRef RealWorld Hand
+    , grid :: Grid RealWorld }
 
-newBananagrams :: Dictionary -> Multiset Char -> ST s (Bananagrams s)
-newBananagrams dict hand = Bananagrams dict <$> newSTRef hand <*> newGrid (Multiset.size hand)
+newBananagrams :: LoggableIO m => Dictionary -> Multiset Char -> m Bananagrams
+newBananagrams dict hand = liftST $ Bananagrams dict <$> newSTRef hand <*> newGrid (Multiset.size hand)
 
 entryChars :: Entry -> Multiset Char
 entryChars = Multiset.fromList . T.unpack . entryText
 
-try :: Bananagrams s -> Entry -> ST s ()
+try :: LoggableIO m => Bananagrams -> Entry -> m ()
 try (Bananagrams _ ref grid) entry = do
-  setEntry entry grid >>= \case
+  log1 Debug "Trying {}" (Shown entry)
+  liftST (setEntry entry grid) >>= \case
     Nothing -> pure ()
-    Just _ -> error "conflict"
+    Just conflict -> do
+      bs <- liftST (displayGrid grid)
+      log1 Error "Conflict: {}" (decodeLatin1 bs)
+      error $ "conflict: " ++ show conflict
   -- TODO: Fix this, we shouldn't deduct characters that are reused by the entry.
-  modifySTRef' ref (flip Multiset.difference $ entryChars entry)
+  liftST $ modifySTRef' ref (flip Multiset.difference $ entryChars entry)
 
-backtrack :: Bananagrams s -> ST s ()
-backtrack (Bananagrams _ ref grid) = unsetLastEntry grid >>= \case
-  Nothing -> error "backtracking too far"
-  Just entry -> modifySTRef' ref (<> entryChars entry)
+backtrack :: LoggableIO m => Bananagrams -> m ()
+backtrack (Bananagrams _ ref grid) = do
+  liftST (unsetLastEntry grid) >>= \case
+    Nothing -> error "backtracking too far"
+    Just entry -> do
+      liftST $ modifySTRef' ref (<> entryChars entry)
+      log1 Debug "Backtracked, removing {}" (Shown entry)
 
-startSolve :: Bananagrams s -> ST s (Maybe [Entry])
-startSolve b@(Bananagrams d ref _) = firstWords d <$> readSTRef ref >>= firstJust tryWord where
-  tryWord word = do
-    try b $ Entry word Horizontal 0
-    continueSolve b >>= \case
-      Just entries -> pure $ Just entries
-      Nothing -> backtrack b >> pure Nothing
+startSolve :: LoggableIO m => Bananagrams -> m (Maybe [Entry])
+startSolve b@(Bananagrams d ref _) = do
+  log0 Informational "Starting solve"
+  hand <- liftST (readSTRef ref)
+  let
+    tryWord word = do
+      log1 Informational "Selecting first word {}" word
+      try b $ Entry word Horizontal 0
+      continueSolve b >>= \case
+        Just entries -> pure $ Just entries
+        Nothing -> backtrack b >> pure Nothing
+  firstJust tryWord $ firstWords d hand
 
-continueSolve :: Bananagrams s -> ST s (Maybe [Entry])
+continueSolve :: LoggableIO m => Bananagrams -> m (Maybe [Entry])
 continueSolve b@(Bananagrams dict ref grid) = do
-  hand <- readSTRef ref
+  hand <- liftST $ readSTRef ref
   if Multiset.null hand
-    then Just <$> gridEntries grid
+    then do
+      log0 Informational "Completed"
+      Just <$> liftST (gridEntries grid)
     else do
-      cands <- candidates grid
+      cands <- liftST $ candidates grid
       let
         tryCandidate (Candidate yx orient spots) =
           firstJust (tryWord yx orient) (matchingWords dict hand spots)
@@ -76,5 +95,5 @@ continueSolve b@(Bananagrams dict ref grid) = do
           try b entry >> continueSolve b >>= maybe (backtrack b >> pure Nothing) (pure . Just)
       firstJust tryCandidate cands
 
-solve :: Dictionary -> Multiset Char -> Maybe [Entry]
-solve dict hand = runST $ newBananagrams dict hand >>= startSolve
+solve :: Dictionary -> Multiset Char -> IO (Maybe [Entry])
+solve dict hand = loggingToStderr $ newBananagrams dict hand >>= startSolve
