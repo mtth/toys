@@ -25,12 +25,10 @@ data Flags
     deriving Show
 
 flagsParser :: FA.FlagsParser Flags
-flagsParser =
-  let stringVal = fmap T.unpack <$> FA.textVal
-  in Flags
-    <$> (FA.flag stringVal "dictionary_file" "path to words" <|> pure "/usr/share/dict/words")
-    <*> (Multiset.fromList <$> FA.flag stringVal "letters" "available letters")
-    <*> (FA.flag FA.enumVal "log_level" "log level" <|> pure Notice)
+flagsParser = Flags
+  <$> (FA.flag FA.stringVal "words_file" "path to words" <|> pure "/usr/share/dict/words")
+  <*> (Multiset.fromList <$> FA.flag FA.stringVal "hand" "available letters")
+  <*> (FA.flag FA.enumVal "log_level" "log level" <|> pure Notice)
 
 readDict :: FilePath -> IO Dictionary
 readDict path = newDictionary . filter ((> 1) . T.length) . T.lines <$> T.readFile path
