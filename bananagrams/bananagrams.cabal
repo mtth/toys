@@ -28,13 +28,16 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , extra
     , lattices
     , logging-effect
     , more-containers
+    , mtl
     , prettyprinter
     , text
     , text-format
     , time
+    , transformers
     , vector
     , vector-algorithms
     , yx >= 0.0.3.0

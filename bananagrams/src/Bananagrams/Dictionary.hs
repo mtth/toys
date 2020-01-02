@@ -45,18 +45,22 @@ firstWords :: Dictionary -> Hand -> [Text]
 firstWords (Dictionary items) chars =
   fmap itemTxt $ Vector.toList $ Vector.filter (spellable chars) items
 
-itemOffsets :: Map Int Char -> Item -> [Int]
-itemOffsets spots (Item _ vec mset) =
+-- a..0...b
+--  xxxx
+itemOffsets :: Map Int Char -> (Int, Int) -> Item -> [Int]
+itemOffsets chars (leftBound, rightBound) (Item _ vec mset) =
   let
-    n = Vector.length vec - 1
-    matches k = all (\(i, char) -> maybe True (== char) $ vec Vector.!? (i + k)) $ Map.toList spots
-    isDisjoint k = Map.notMember (-(k + 1)) spots && Map.notMember (n - k + 1) spots
+    len = Vector.length vec
+    minOffset = max 0 (len - 1 - rightBound)
+    maxOffset = min (len - 1) leftBound
+    matches k = all (\(i, char) -> maybe True (== char) $ vec Vector.!? (i + k)) $ Map.toList chars
+    isDisjoint k = Map.notMember (-(k + 1)) chars && Map.notMember (len - k) chars
     isSpellable n = True -- TODO: Should check that we have enough characters given matches.
-  in filter (\k -> matches k && isDisjoint k && isSpellable k) [0..n]
+  in filter (\k -> matches k && isDisjoint k && isSpellable k) [minOffset .. maxOffset]
 
-matchingWords :: Dictionary -> Hand -> Map Int Char -> [(Text, Int)]
-matchingWords (Dictionary items) chars spots =
+matchingWords :: Dictionary -> Hand -> Map Int Char -> (Int, Int) -> [(Text, Int)]
+matchingWords (Dictionary items) hand chars bounds =
   let
-    chars' = foldl' (flip Multiset.insert) chars $ Map.elems spots
+    chars' = foldl' (flip Multiset.insert) hand $ Map.elems chars
     items' = filter (spellable chars') $ Vector.toList items
-  in concat $ fmap (\item -> fmap (itemTxt item,) (itemOffsets spots item)) items'
+  in concat $ fmap (\item -> fmap (itemTxt item,) (itemOffsets chars bounds item)) items'

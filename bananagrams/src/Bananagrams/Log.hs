@@ -11,7 +11,7 @@ module Bananagrams.Log (
 
 import Control.Monad ((<=<))
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Log (Handler, LoggingT, MonadLog, Severity(..), WithSeverity(..), defaultBatchingOptions, logMessage, renderWithSeverity, renderWithTimestamp, runLoggingT, timestamp, withFDHandler)
+import Control.Monad.Log (Handler, LoggingT, MonadLog, Severity(..), WithSeverity(..), defaultBatchingOptions, logMessage, msgSeverity, renderWithSeverity, renderWithTimestamp, runLoggingT, timestamp, withFDHandler)
 import Control.Monad.ST (RealWorld, ST, stToIO)
 import Data.Text.Buildable (Buildable)
 import Data.Text.Format (Format, Only(..), Shown(..), format)
@@ -42,6 +42,8 @@ renderMessage msg =
   let renderTime = formatTime defaultTimeLocale $ iso8601DateFormat $ Just "%H:%M:%S"
   in renderWithTimestamp renderTime (renderWithSeverity pretty) <$> timestamp msg
 
-loggingToStderr :: LoggingT Message IO a -> IO a
-loggingToStderr axn = withFDHandler defaultBatchingOptions stderr 0.4 80 $ \handler ->
-  runLoggingT axn (handler <=< renderMessage)
+loggingToStderr :: Severity -> LoggingT Message IO a -> IO a
+loggingToStderr sev axn = withFDHandler defaultBatchingOptions stderr 0.4 80 $ \handler ->
+  runLoggingT axn $ \msg -> if msgSeverity msg <= sev
+    then renderMessage msg >>= handler
+    else pure ()

@@ -9,7 +9,7 @@
 -- words in the same direction are not adjacent, and therefore might fail to find a solution even if
 -- one exists (this is however unlikely in realistic examples).
 module Bananagrams (
-  solve,
+  solve, Severity(..),
   Dictionary, newDictionary,
   Entry(..), Orientation(..), displayEntries
 ) where
@@ -46,24 +46,20 @@ entryChars :: Entry -> Multiset Char
 entryChars = Multiset.fromList . T.unpack . entryText
 
 try :: LoggableIO m => Bananagrams -> Entry -> m ()
-try (Bananagrams _ ref grid) entry = do
+try (Bananagrams _ handRef grid) entry = do
   log1 Debug "Trying {}" (Shown entry)
   liftST (setEntry entry grid) >>= \case
-    Nothing -> pure ()
-    Just conflict -> do
+    Left conflict -> do
       bs <- liftST (displayGrid grid)
-      log1 Error "Conflict: {}" (decodeLatin1 bs)
+      log1 Error "Conflict:\n{}" (decodeLatin1 bs)
       error $ "conflict: " ++ show conflict
-  -- TODO: Fix this, we shouldn't deduct characters that are reused by the entry.
-  liftST $ modifySTRef' ref (flip Multiset.difference $ entryChars entry)
+    Right chars -> liftST $ modifySTRef' handRef (flip Multiset.difference chars)
 
 backtrack :: LoggableIO m => Bananagrams -> m ()
 backtrack (Bananagrams _ ref grid) = do
-  liftST (unsetLastEntry grid) >>= \case
-    Nothing -> error "backtracking too far"
-    Just entry -> do
-      liftST $ modifySTRef' ref (<> entryChars entry)
-      log1 Debug "Backtracked, removing {}" (Shown entry)
+  chars <- liftST (unsetLastEntry grid)
+  liftST $ modifySTRef' ref (<> chars)
+  log1 Debug "Backtracked, removing {}" (Shown chars)
 
 startSolve :: LoggableIO m => Bananagrams -> m (Maybe [Entry])
 startSolve b@(Bananagrams d ref _) = do
@@ -84,16 +80,19 @@ continueSolve b@(Bananagrams dict ref grid) = do
   if Multiset.null hand
     then do
       log0 Informational "Completed"
-      Just <$> liftST (gridEntries grid)
+      Just <$> liftST (currentEntries grid)
     else do
-      cands <- liftST $ candidates grid
+      log1 Debug "Remaining letters: {}" (Shown hand)
+      cands <- liftST $ candidates (Multiset.size hand + 2) grid -- TODO: Find better estimate.
+      log1 Debug "Found {} candidates" (length cands) -- TODO: Remove.
       let
-        tryCandidate (Candidate yx orient spots) =
-          firstJust (tryWord yx orient) (matchingWords dict hand spots)
+        tryCandidate cand@(Candidate yx orient chars bounds) = do
+          log1 Debug "Trying {}" (Shown cand)
+          firstJust (tryWord yx orient) (matchingWords dict hand chars bounds)
         tryWord yx orient (word, off) = do
           let entry = Entry word orient (yx - fromIntegral off * orientationYX orient)
           try b entry >> continueSolve b >>= maybe (backtrack b >> pure Nothing) (pure . Just)
       firstJust tryCandidate cands
 
-solve :: Dictionary -> Multiset Char -> IO (Maybe [Entry])
-solve dict hand = loggingToStderr $ newBananagrams dict hand >>= startSolve
+solve :: Severity -> Dictionary -> Multiset Char -> IO (Maybe [Entry])
+solve sev dict hand = loggingToStderr sev $ newBananagrams dict hand >>= startSolve
