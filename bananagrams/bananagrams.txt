@@ -15,7 +15,7 @@ type Hand = Multiset Char
 
 -- | Returns the best words to use first given the allowed characters.
 firstWords :: Dictionary -> Hand -> [Text]
-matchingWords :: Dictionary -> Hand -> Map Int Char -> [(Text, Int)]
+matchingWords :: Dictionary -> Hand -> Map Int Char -> (Int, Int) -> [(Text, Int)]
 
 
 -- | Bananagrams grid operations
@@ -23,6 +23,17 @@ module Bananagrams.Grid
 
 -- | A Bananagrams grid!
 data Grid s
+Grid :: !STRef s (Seq Change) -> !STRef s (Multiset YX) -> !STUArray s YX Letter -> Grid s
+
+-- | All entries currently set in the grid.
+[gridChanges] :: Grid s -> !STRef s (Seq Change)
+
+-- | The positions where no character should go. These include the
+--   positions right before and after each entry and around intersections.
+[gridBlocks] :: Grid s -> !STRef s (Multiset YX)
+
+-- | The 2D grid, with the entries' characters, space if not populated.
+[gridLetters] :: Grid s -> !STUArray s YX Letter
 
 -- | Generates a new grid of edge length <tt>2*n+1</tt>, centered around 0.
 newGrid :: Int -> ST s (Grid s)
@@ -39,27 +50,31 @@ data Orientation
 Horizontal :: Orientation
 Vertical :: Orientation
 orientationYX :: Orientation -> YX
-gridEntries :: Grid s -> ST s [Entry]
+
+-- | All entries set in the grid.
+currentEntries :: Grid s -> ST s [Entry]
 
 -- | A conflict when adding an entry.
 data Conflict
-Conflict :: !YX -> Char -> Char -> Conflict
+Conflict :: !YX -> Char -> Maybe Char -> Conflict
 [conflictYX] :: Conflict -> !YX
-[conflictOldChar] :: Conflict -> Char
 [conflictNewChar] :: Conflict -> Char
 
+-- | Nothing if the position can not be populated.
+[conflictOldChar] :: Conflict -> Maybe Char
+
 -- | Attempts to add a new entry to the grid. Note that this method does
---   *not* check that a word is valid. If the word is too long, this method
---   will <a>error</a>.
-setEntry :: Entry -> Grid s -> ST s (Maybe Conflict)
+--   *not* check that a word is valid. If the word is empty or does not fit
+--   in the grid, this method will <a>error</a>.
+setEntry :: Entry -> Grid s -> ST s (Either Conflict (Multiset Char))
 
 -- | Removes the last added entry, or does nothing if the grid doesn't
---   contain any entries.
-unsetLastEntry :: Grid s -> ST s (Maybe Entry)
+--   contain any entries. Returns the entry which was just unset, if any.
+unsetLastEntry :: Grid s -> ST s (Multiset Char)
 
 -- | A candidate grid location.
 data Candidate
-Candidate :: !YX -> !Orientation -> !Map Int Char -> Candidate
+Candidate :: !YX -> !Orientation -> !Map Int Char -> !(Int, Int) -> Candidate
 
 -- | The candidate root coordinate, always already set in the grid.
 [candidateYX] :: Candidate -> !YX
@@ -71,17 +86,27 @@ Candidate :: !YX -> !Orientation -> !Map Int Char -> Candidate
 --   root.
 [candidateChars] :: Candidate -> !Map Int Char
 
+-- | Minimum and maximum offsets for this candidate position. Note that the
+--   maximum candidate word length can be inferred from these bounds (
+[candidateBounds] :: Candidate -> !(Int, Int)
+
 -- | Returns all candidate locations for adding new words to the grid. Note
 --   that word expansions are not considered valid candidates (e.g.
 --   <tt>T</tt> transforming <tt>CAT</tt> into <tt>CATS</tt> would not be
---   returned).
-candidates :: Grid s -> ST s [Candidate]
+--   returned). The first argument is used to limit the sweep, it should be
+--   set to the maximum length of the word set in these positions + 1.
+candidates :: Int -> Grid s -> ST s [Candidate]
+displayGrid :: Grid s -> ST s ByteString
 
 -- | Returns a human-readable representation of the entries.
 displayEntries :: [Entry] -> Either Conflict ByteString
 instance GHC.Show.Show Bananagrams.Grid.Candidate
 instance GHC.Classes.Ord Bananagrams.Grid.Candidate
 instance GHC.Classes.Eq Bananagrams.Grid.Candidate
+instance GHC.Show.Show Bananagrams.Grid.Conflict
+instance GHC.Classes.Ord Bananagrams.Grid.Conflict
+instance GHC.Classes.Eq Bananagrams.Grid.Conflict
+instance GHC.Show.Show Bananagrams.Grid.Change
 instance GHC.Show.Show Bananagrams.Grid.Entry
 instance GHC.Classes.Ord Bananagrams.Grid.Entry
 instance GHC.Classes.Eq Bananagrams.Grid.Entry
@@ -97,6 +122,30 @@ instance GHC.Classes.Ord Bananagrams.Grid.Orientation
 instance GHC.Classes.Eq Bananagrams.Grid.Orientation
 
 
+-- | Logging utilities.
+module Bananagrams.Log
+type Message = WithSeverity Text
+type Loggable = MonadLog Message
+data Severity
+Emergency :: Severity
+Alert :: Severity
+Critical :: Severity
+Error :: Severity
+Warning :: Severity
+Notice :: Severity
+Informational :: Severity
+Debug :: Severity
+newtype Shown a
+Shown :: a -> Shown a
+[shown] :: Shown a -> a
+log0 :: Loggable m => Severity -> Text -> m ()
+log1 :: (Buildable a, Loggable m) => Severity -> Format -> a -> m ()
+logs :: (Params p, Loggable m) => Severity -> Format -> p -> m ()
+type LoggableIO m = (MonadIO m, Loggable m)
+liftST :: LoggableIO m => ST RealWorld a -> m a
+loggingToStderr :: Severity -> LoggingT Message IO a -> IO a
+
+
 -- | A simple Bananagrams solver.
 --   
 --   This module implements a heuristic for finding a valid Bananagrams
@@ -106,7 +155,16 @@ instance GHC.Classes.Eq Bananagrams.Grid.Orientation
 --   solution even if one exists (this is however unlikely in realistic
 --   examples).
 module Bananagrams
-solve :: Dictionary -> Multiset Char -> Maybe [Entry]
+solve :: Severity -> Dictionary -> Multiset Char -> IO (Maybe [Entry])
+data Severity
+Emergency :: Severity
+Alert :: Severity
+Critical :: Severity
+Error :: Severity
+Warning :: Severity
+Notice :: Severity
+Informational :: Severity
+Debug :: Severity
 data Dictionary
 newDictionary :: [Text] -> Dictionary
 
