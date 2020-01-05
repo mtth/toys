@@ -1,8 +1,8 @@
 cabal-version: 1.12
 
 name: bananagrams
-version: 0.0.1.0
-description: Bananagrams, a game
+version: 0.0.1.1
+description: A toy Bananagrams solver
 homepage: https://github.com/mtth/toys/bananagrams
 author: Matthieu Monsch
 maintainer: mtth@apache.org
@@ -20,7 +20,8 @@ library
   hs-source-dirs: src
   exposed-modules:
       Bananagrams
-    , Bananagrams.Dictionary
+  other-modules:
+      Bananagrams.Dictionary
     , Bananagrams.Grid
     , Bananagrams.Log
   build-depends:
@@ -40,7 +41,7 @@ library
     , transformers
     , vector
     , vector-algorithms
-    , yx >= 0.0.3.0
+    , yx
   default-language: Haskell2010
 
 executable bananagrams
@@ -55,7 +56,7 @@ executable bananagrams
     , flags-applicative
     , more-containers
     , text
-    , yx >= 0.0.3.0
+    , yx
   default-language: Haskell2010
 
 test-suite bananagrams-test
@@ -68,7 +69,7 @@ test-suite bananagrams-test
     , base >=4.11 && <5
     , containers
     , more-containers
-    , hspec >=2.6
-    , text >=1.2
-    , yx >= 0.0.3.0
+    , hspec
+    , text
+    , yx
   default-language: Haskell2010

@@ -24,6 +24,7 @@ data Item = Item { itemTxt :: !Text, itemVec :: !(Vector Char), itemMset :: !(Mu
 newItem :: Text -> Item
 newItem txt = let chars = T.unpack txt in Item txt (Vector.fromList chars) (Multiset.fromList chars)
 
+-- | A bag of allowed words.
 newtype Dictionary = Dictionary (Vector Item)
 
 sortByDescLength :: Vector Item -> Vector Item
@@ -32,12 +33,14 @@ sortByDescLength vec = runST $ do
   Vector.sortBy (comparing (\item -> (- T.length (itemTxt item)))) vec'
   Vector.unsafeFreeze vec'
 
+-- | Generates a 'Dictionary' from a list of words.
 newDictionary :: [Text] -> Dictionary
 newDictionary = Dictionary . sortByDescLength . Vector.fromList . fmap newItem
 
 spellable :: Hand -> Item -> Bool
 spellable chars (Item _ _ mset) = mset `Multiset.isSubsetOf` chars
 
+-- | A convenience alias for the characters in hand (to be placed on the grid).
 type Hand = Multiset Char
 
 -- | Returns the best words to use first given the allowed characters.
@@ -58,7 +61,14 @@ itemOffsets hand chars (leftBound, rightBound) (Item _ vec mset) =
     isSpellable k = mset `Multiset.isSubsetOf` (hand <> usedChars k)
   in filter (\k -> matches k && isDisjoint k && isSpellable k) [minOffset .. maxOffset]
 
-matchingWords :: Dictionary -> Hand -> Map Int Char -> (Int, Int) -> [(Text, Int)]
+-- | Returns the words and offsets from the given dictionary and hand which match the constraints
+-- and fit within the bounds.
+matchingWords
+  :: Dictionary
+  -> Hand
+  -> Map Int Char -- ^ Character constraints, i.e. positions where characters are already set.
+  -> (Int, Int) -- ^ Bounds which cap the minimum and maximum offsets.
+  -> [(Text, Int)]
 matchingWords (Dictionary items) hand chars bounds =
   let
     chars' = foldl' (flip Multiset.insert) hand $ Map.elems chars

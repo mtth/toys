@@ -14,4 +14,5 @@ Or, specifying a custom dictionary (one word per line):
 $ stack exec bananagrams -- --hand=abcdef --words_file=my/words
 ```
 
-Haddock documentation is available [here](http://mtth.io/toys/bananagrams/).
+Haddock documentation is available
+[here](http://mtth.github.io/toys/bananagrams/).

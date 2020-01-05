@@ -9,8 +9,11 @@
 -- words in the same direction are not adjacent, and therefore might fail to find a solution even if
 -- one exists (this is however unlikely in realistic examples).
 module Bananagrams (
+  -- * Generate inputs
+  Dictionary, newDictionary, Hand,
+  -- * Find a solution
   solve, Severity(..),
-  Dictionary, newDictionary,
+  -- * Inspect the solution
   Entry(..), Orientation(..), displayEntries
 ) where
 
@@ -94,5 +97,10 @@ continueSolve b@(Bananagrams dict ref grid) = do
           try b entry >> continueSolve b >>= maybe (backtrack b >> pure Nothing) (pure . Just)
       firstJust tryCandidate cands
 
-solve :: Severity -> Dictionary -> Multiset Char -> IO (Maybe [Entry])
+-- | Solves a game, assembling the characters into valid words as a grid.
+solve
+  :: Severity -- ^ The minimum severity for which to log messages (to @stderr@).
+  -> Dictionary -- ^ The dictionary of allowed words.
+  -> Hand -- ^ The characters to assemble within the grid.
+  -> IO (Maybe [Entry])
 solve sev dict hand = loggingToStderr sev $ newBananagrams dict hand >>= startSolve

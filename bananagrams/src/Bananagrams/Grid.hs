@@ -6,7 +6,7 @@
 -- | Bananagrams grid operations
 module Bananagrams.Grid (
   -- * Construction
-  Grid(..), newGrid,
+  Grid, newGrid,
   -- * Accessors
   Entry(..), Orientation(..), orientationYX, currentEntries,
   -- * Modification
@@ -56,6 +56,7 @@ import Debug.Trace (trace)
 -- | An entry's orientation.
 data Orientation = Horizontal | Vertical deriving (Eq, Ord, Enum, Bounded, Show)
 
+-- | The unit vector corresponding to the orientation.
 orientationYX :: Orientation -> YX
 orientationYX Horizontal = YX.right
 orientationYX Vertical = YX.down
@@ -326,6 +327,8 @@ candidates maxBound grid = do
   points <- extensionPoints grid
   filter isExtensible <$> traverse toCandidate points
 
+-- | Formats a grid into a string. See 'displayEntries' for a convenience wrapper for common
+-- use-cases.
 displayGrid :: Grid s -> ST s ByteString
 displayGrid grid = fmap entriesBox (currentEntries grid) >>= \case
   Nothing -> pure ""
