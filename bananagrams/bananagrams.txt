@@ -2,19 +2,29 @@
 -- See Hoogle, http://www.haskell.org/hoogle/
 
 
--- | Bananagrams, a game
+-- | A toy Bananagrams solver
 @package bananagrams
-@version 0.0.1.0
+@version 0.0.1.1
 
 
 -- | Bananagrams word selection
 module Bananagrams.Dictionary
+
+-- | A bag of allowed words.
 data Dictionary
+
+-- | Generates a <a>Dictionary</a> from a list of words.
 newDictionary :: [Text] -> Dictionary
+
+-- | A convenience alias for the characters in hand (to be placed on the
+--   grid).
 type Hand = Multiset Char
 
 -- | Returns the best words to use first given the allowed characters.
 firstWords :: Dictionary -> Hand -> [Text]
+
+-- | Returns the words and offsets from the given dictionary and hand which
+--   match the constraints and fit within the bounds.
 matchingWords :: Dictionary -> Hand -> Map Int Char -> (Int, Int) -> [(Text, Int)]
 
 
@@ -23,17 +33,6 @@ module Bananagrams.Grid
 
 -- | A Bananagrams grid!
 data Grid s
-Grid :: !STRef s (Seq Change) -> !STRef s (Multiset YX) -> !STUArray s YX Letter -> Grid s
-
--- | All entries currently set in the grid.
-[gridChanges] :: Grid s -> !STRef s (Seq Change)
-
--- | The positions where no character should go. These include the
---   positions right before and after each entry and around intersections.
-[gridBlocks] :: Grid s -> !STRef s (Multiset YX)
-
--- | The 2D grid, with the entries' characters, space if not populated.
-[gridLetters] :: Grid s -> !STUArray s YX Letter
 
 -- | Generates a new grid of edge length <tt>2*n+1</tt>, centered around 0.
 newGrid :: Int -> ST s (Grid s)
@@ -49,6 +48,8 @@ Entry :: !Text -> !Orientation -> !YX -> Entry
 data Orientation
 Horizontal :: Orientation
 Vertical :: Orientation
+
+-- | The unit vector corresponding to the orientation.
 orientationYX :: Orientation -> YX
 
 -- | All entries set in the grid.
@@ -96,6 +97,9 @@ Candidate :: !YX -> !Orientation -> !Map Int Char -> !(Int, Int) -> Candidate
 --   returned). The first argument is used to limit the sweep, it should be
 --   set to the maximum length of the word set in these positions + 1.
 candidates :: Int -> Grid s -> ST s [Candidate]
+
+-- | Formats a grid into a string. See <a>displayEntries</a> for a
+--   convenience wrapper for common use-cases.
 displayGrid :: Grid s -> ST s ByteString
 
 -- | Returns a human-readable representation of the entries.
@@ -155,7 +159,19 @@ loggingToStderr :: Severity -> LoggingT Message IO a -> IO a
 --   solution even if one exists (this is however unlikely in realistic
 --   examples).
 module Bananagrams
-solve :: Severity -> Dictionary -> Multiset Char -> IO (Maybe [Entry])
+
+-- | A bag of allowed words.
+data Dictionary
+
+-- | Generates a <a>Dictionary</a> from a list of words.
+newDictionary :: [Text] -> Dictionary
+
+-- | A convenience alias for the characters in hand (to be placed on the
+--   grid).
+type Hand = Multiset Char
+
+-- | Solves a game, assembling the characters into valid words as a grid.
+solve :: Severity -> Dictionary -> Hand -> IO (Maybe [Entry])
 data Severity
 Emergency :: Severity
 Alert :: Severity
@@ -165,8 +181,6 @@ Warning :: Severity
 Notice :: Severity
 Informational :: Severity
 Debug :: Severity
-data Dictionary
-newDictionary :: [Text] -> Dictionary
 
 -- | A word entry inside a grid.
 data Entry
