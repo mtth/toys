@@ -32,9 +32,9 @@ main = getEnv >>= evalStateT (forever go) where
     line <- liftIO $ T.putStr "hm> " >> hFlush stdout >> T.getLine
     result <- interpret line
     liftIO $ case result of
-      Computation (LitV lit) -> T.putStrLn $ displayLit lit
-      Computation (ClosureV _) -> putStrLn "<closure>"
-      Computation (UndefinedV) -> putStrLn "<undefined>"
-      BoundIdentifier iden tp -> T.putStrLn $ iden <> " :: " <> displayType tp
+      Computation tp (LitV lit) -> T.putStrLn $ displayLit lit <> " :: " <> displayType tp
+      Computation tp (ClosureV _) -> T.putStrLn $ "<closure> :: " <> displayType tp
+      Computation _ UndefinedV -> putStrLn "<undefined>"
+      BoundIdentifier{} -> pure ()
       InvalidSyntax err -> T.putStrLn $ "syntax error: " <> displayParsingError err
       InvalidType err -> T.putStrLn $ "type error: " <> displayTypeError err

@@ -36,7 +36,7 @@ import qualified Text.Megaparsec as P
 
 -- | The result of interpreting a command.
 data Result
-  = Computation Value -- ^ A pure value.
+  = Computation Type Value -- ^ A pure value.
   | BoundIdentifier Iden Type -- ^ A binding was added to the environment.
   | InvalidSyntax ParsingError -- ^ The command could not be parsed.
   | InvalidType TypeError -- ^ The command was parsed but did not have a valid type.
@@ -72,7 +72,7 @@ interpret txt = case P.parse parser "" txt of
             Nothing -> error "unreachable"
       Right expr -> case eval expr env of
         Left err -> pure $ InvalidType err
-        Right (_, val) -> pure $ Computation val
+        Right (tp, val) -> pure $ Computation tp val
 
 -- | A default environment with bindings for common functionality:
 --
