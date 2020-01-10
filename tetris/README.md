@@ -6,7 +6,7 @@ A minimal but functional Tetris game written with
 To play:
 
 ```sh
-$ stack exec tetris
+$ stack run
 ```
 
 The following commands are supported:

@@ -9,8 +9,6 @@ module Tetris (
   Score(..), currentScore, onTick
 ) where
 
-import Tetris.Board
-
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Log (MonadLog, WithSeverity, logDebug, logInfo, logWarning)
 import Data.Geometry.YX (YX)
@@ -19,6 +17,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text.Format as T
 import Data.Text.Lazy (Text)
+
+import Tetris.Board
 
 -- | A Tetris game's state.
 data Game = Game

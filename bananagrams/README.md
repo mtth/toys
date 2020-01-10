@@ -3,7 +3,7 @@
 To run the command using the default dictionary (`/usr/share/dict/words`):
 
 ```sh
-$ stack exec bananagrams -- --hand=abcdef
+$ stack run -- --hand=abcdef
  b
 decaf
 ```
@@ -11,7 +11,7 @@ decaf
 Or, specifying a custom dictionary (one word per line):
 
 ```sh
-$ stack exec bananagrams -- --hand=abcdef --words_file=my/words
+$ stack run -- --hand=abcdef --words_file=my/words
 ```
 
 Haddock documentation is available

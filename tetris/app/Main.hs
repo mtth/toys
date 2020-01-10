@@ -3,18 +3,19 @@
 
 module Main where
 
-import Tetris
-
-import Control.Monad.Log (WithSeverity(..), renderWithSeverity, runLoggingT)
+import Control.Monad.Log (WithSeverity(..), runLoggingT)
 import Data.Foldable (toList)
-import qualified Data.Geometry.YX as YX
-import qualified Data.Text.Format as LT
+import Data.Geometry.YX (YX(YX))
+import qualified Data.Text.Format as T
 import Data.Text.Lazy (Text)
-import Graphics.Gloss (Display(..), Picture, color, greyN, makeColorI, pictures, rectangleSolid, scale, text, translate)
+import Graphics.Gloss (Color, Display(..), Picture, color, greyN, makeColorI, pictures, rectangleSolid, scale, text, translate)
 import Graphics.Gloss.Interface.IO.Game (Event(..), Key(..), KeyState(..), SpecialKey(..), playIO)
 import System.Exit (ExitCode(..), exitWith)
 
+import Tetris
+
 -- A few colors used below.
+blue, green, red, yellow :: Color
 blue = makeColorI 72 133 237 255
 green = makeColorI 60 186 84 255
 red = makeColorI 219 50 54 255
@@ -43,7 +44,7 @@ userInput = go where
   go _ = BadInput
 
 printWithSeverity :: WithSeverity Text -> IO ()
-printWithSeverity w = LT.print "[{}]\t{}\n" (LT.Shown (msgSeverity w), discardSeverity w)
+printWithSeverity w = T.print "[{}]\t{}\n" (T.Shown (msgSeverity w), discardSeverity w)
 
 onEvent :: Event -> Game -> IO Game
 onEvent event game = case event of
@@ -72,7 +73,7 @@ drawGame game = pure $ pictures [backPic, activePic, frozenPic, scorePic] where
   activePic = color green $ drawCoords $ activeCoords game
   frozenPic = color blue $ drawCoords $ frozenCoords game
   drawCoords = pictures . fmap drawCoord . toList where
-    drawCoord (YX.YX y x) =
+    drawCoord (YX y x) =
       let
         rect = rectangleSolid (toSize 1) (toSize 1)
         xPos = toSize x - (width - blockSize) / 2
@@ -85,5 +86,5 @@ main = do
     padding = 125
     size = (ceiling width + padding, ceiling height + padding)
     display = InWindow "Tetris" size (0, 0)
-  Just game <- newGame (YX.YX (numRows - 1) (numCols - 1))
+  Just game <- newGame (YX (numRows - 1) (numCols - 1))
   playIO display (greyN 0.8) 2 game drawGame onEvent (const onIteration)
