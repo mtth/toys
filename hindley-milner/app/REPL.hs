@@ -9,8 +9,6 @@
 -- Bindings defined in each PATH (one per line) will be loaded into the REPL at startup.
 module Main where
 
-import HindleyMilner
-
 import Control.Monad (forever)
 import Control.Monad.State (evalStateT, get)
 import Control.Monad.IO.Class (liftIO)
@@ -18,6 +16,8 @@ import Data.Foldable (foldlM)
 import qualified Data.Text.IO as T
 import System.Environment (getArgs)
 import System.IO (IOMode(..), hFlush, hIsEOF, stdout, withFile)
+
+import HindleyMilner
 
 loadEnv :: Env -> FilePath -> IO Env
 loadEnv env fp = withFile fp ReadMode $ \h -> evalStateT (go h) env where

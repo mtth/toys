@@ -24,8 +24,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void (Void)
 import qualified Text.Megaparsec as P
-import qualified Text.Megaparsec.Char as P
-import qualified Text.Megaparsec.Char.Lexer as PL
+import qualified Text.Megaparsec.Char as P hiding (space)
+import qualified Text.Megaparsec.Char.Lexer as P
 
 -- | An expression.
 data Expr
@@ -74,13 +74,13 @@ displayParsingError :: ParsingError -> Text
 displayParsingError = T.pack . P.errorBundlePretty
 
 whitespace :: Parser ()
-whitespace = PL.space P.space1 empty empty
+whitespace = P.space P.space1 empty empty
 
 lexeme :: Parser a -> Parser a
-lexeme = PL.lexeme whitespace
+lexeme = P.lexeme whitespace
 
 symbol :: Text -> Parser ()
-symbol = void . PL.symbol whitespace
+symbol = void . P.symbol whitespace
 
 parens :: Parser a -> Parser a
 parens = P.between (symbol "(") (symbol ")")
@@ -88,8 +88,8 @@ parens = P.between (symbol "(") (symbol ")")
 litParser :: Parser Lit
 litParser = stringP <|> doubleP <|> boolP where
   quoteP = P.char '"'
-  stringP = StringL . T.pack <$> (quoteP *> P.manyTill PL.charLiteral (lexeme quoteP))
-  doubleP = DoubleL . toRealFloat <$> lexeme PL.scientific
+  stringP = StringL . T.pack <$> (quoteP *> P.manyTill P.charLiteral (lexeme quoteP))
+  doubleP = DoubleL . toRealFloat <$> lexeme P.scientific
   boolP = BoolL <$> (True <$ symbol "True" <|> False <$ symbol "False")
 
 -- | Returns the list of reserved identifiers.

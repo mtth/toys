@@ -26,8 +26,6 @@ module HindleyMilner.Infer (
   infer, TypeEnv, boundTo, lookupType, TypeError(..), displayTypeError
 ) where
 
-import HindleyMilner.Parse
-
 import Control.Monad (when)
 import Control.Monad.Except (Except, runExcept, throwError)
 import Control.Monad.Reader (asks, local)
@@ -41,6 +39,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Text (Text)
 import qualified Data.Text as T
+
+import HindleyMilner.Parse
 
 -- | The type inference monad, first pass. A second pass unifies the types.
 type Discover a = RWST TypeEnv (Set Constraint) Int (Except TypeError) a

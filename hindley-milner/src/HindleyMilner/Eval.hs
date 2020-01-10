@@ -14,13 +14,13 @@ module HindleyMilner.Eval (
   unsafeEnv
 ) where
 
-import HindleyMilner.Infer
-import HindleyMilner.Parse
-
 import Control.Monad.Fix (mfix)
 import Control.Monad.Reader (Reader, ask, asks, local, runReader)
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
+
+import HindleyMilner.Infer
+import HindleyMilner.Parse
 
 -- | The expression evaluation monad.
 --

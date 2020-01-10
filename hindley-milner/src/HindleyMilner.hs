@@ -25,14 +25,14 @@ module HindleyMilner (
   ParsingError, displayParsingError, TypeError(..), displayTypeError
 ) where
 
-import HindleyMilner.Eval
-import HindleyMilner.Infer
-import HindleyMilner.Parse
-
 import Control.Applicative ((<|>))
 import Control.Monad.State.Strict (MonadState, get, gets, put)
 import Data.Text (Text)
 import qualified Text.Megaparsec as P
+
+import HindleyMilner.Eval
+import HindleyMilner.Infer
+import HindleyMilner.Parse
 
 -- | The result of interpreting a command.
 data Result

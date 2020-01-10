@@ -3,7 +3,7 @@ cabal-version: 1.12
 name: bananagrams
 version: 0.0.1.1
 description: A toy Bananagrams solver
-homepage: https://github.com/mtth/toys/bananagrams
+homepage: https://github.com/mtth/toys/tree/master/bananagrams
 author: Matthieu Monsch
 maintainer: mtth@apache.org
 copyright: 2019 Matthieu Monsch
