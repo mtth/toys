@@ -112,4 +112,4 @@ pieceCoords = Set.fromList . go where
       coords = fmap (+ p) [0, YX.down + YX.left, YX.down, YX.down + YX.right]
       rotate = YX.rotate YX.Clockwise (YX.Around (p + YX.down))
     in iterate (fmap rotate) coords !! a
-  go (Piece a p Z) = fmap (YX.mirror (YX.AtColumn (YX.x p))) $ go (Piece a p J)
+  go (Piece a p Z) = fmap (YX.mirror (YX.AtColumn (YX.x p))) $ go (Piece a p S)

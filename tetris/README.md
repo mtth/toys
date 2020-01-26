@@ -3,6 +3,10 @@
 A minimal but functional Tetris game written with
 [Gloss](https://hackage.haskell.org/package/gloss).
 
+<p align="center">
+  <img src="https://i.imgur.com/ZqLo1Mz.png">
+</p>
+
 To play:
 
 ```sh
