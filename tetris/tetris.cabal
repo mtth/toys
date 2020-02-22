@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.4
 
 name: tetris
 version: 0.0.1.0
@@ -6,46 +6,50 @@ description: Tetris, a game
 homepage: https://github.com/mtth/toys/tree/master/tetris
 author: Matthieu Monsch
 maintainer: mtth@apache.org
-copyright: 2019 Matthieu Monsch
-license: BSD3
+copyright: 2019-2020 Matthieu Monsch
+license: BSD-3-Clause
 license-file: LICENSE
-build-type: Simple
-extra-source-files: README.md
+
+extra-source-files:
+    README.md
 
 source-repository head
   type: git
   location: https://github.com/mtth/toys
 
 library
-  exposed-modules: Tetris
-                 , Tetris.Board
-  other-modules: Paths_tetris
-  hs-source-dirs: src
-  build-depends: array
-               , base >=4.7 && <5
-               , bytestring
-               , containers
-               , logging-effect
-               , more-containers
-               , random >= 1.1
-               , text
-               , text-format
-               , yx >= 0.0.3.0
+  exposed-modules:
+      Tetris
+    , Tetris.Board
+  hs-source-dirs:
+      src
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , logging-effect
+    , more-containers
+    , random >= 1.1
+    , text
+    , text-format
+    , yx >= 0.0.3.0
   default-language: Haskell2010
 
-executable tetris
+executable tetris-gloss
   main-is: Main.hs
-  other-modules: Paths_tetris
-  hs-source-dirs: app
+  hs-source-dirs:
+      apps/gloss
+  build-depends:
+      array
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , gloss
+    , logging-effect
+    , tetris
+    , text
+    , text-format
+    , yx >= 0.0.3.0
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
-  build-depends: array
-               , base >=4.7 && <5
-               , bytestring
-               , containers
-               , gloss
-               , logging-effect
-               , tetris
-               , text
-               , text-format
-               , yx >= 0.0.3.0
   default-language: Haskell2010

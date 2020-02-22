@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main where
+module Main (main) where
 
 import Control.Monad.Log (WithSeverity(..), runLoggingT)
 import Data.Foldable (toList)
@@ -15,11 +15,11 @@ import System.Exit (ExitCode(..), exitWith)
 import Tetris
 
 -- A few colors used below.
-blue, green, red, yellow :: Color
+blue, green, red :: Color
 blue = makeColorI 72 133 237 255
 green = makeColorI 60 186 84 255
 red = makeColorI 219 50 54 255
-yellow = makeColorI 244 194 13 255
+-- yellow = makeColorI 244 194 13 255
 
 -- Number of rows and columns in the board.
 numRows, numCols :: Int
