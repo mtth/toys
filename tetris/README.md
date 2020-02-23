@@ -1,6 +1,7 @@
 # Tetris
 
-A minimal but functional Tetris game written with
+A minimal but functional Tetris game featuring UIs written with
+[Brick](https://hackage.haskell.org/package/brick) and
 [Gloss](https://hackage.haskell.org/package/gloss).
 
 <p align="center">
@@ -10,7 +11,8 @@ A minimal but functional Tetris game written with
 To play:
 
 ```sh
-$ stack run
+$ stack exec tetris-brick # Terminal UI.
+$ stack exec tetris-gloss # Graphical window UI.
 ```
 
 The following commands are supported:
