@@ -54,20 +54,21 @@ addBinding (Binding iden _ expr) = do
 
 -- | Evaluates an expression.
 evalExpr :: Expr -> Eval LazyValue
-evalExpr (VarE iden) = asks (Map.lookup iden) >>= \case
-  Just lazy -> pure lazy
-  Nothing -> error "bug"
-evalExpr (LitE lit) = pure $ Lazy $ LitV lit
-evalExpr (AppE expr arg) = evalExpr expr >>= \case
-  Lazy (ClosureV fn) -> Lazy . fn . force <$> evalExpr arg
-  _ -> error "bug"
-evalExpr (LambdaE iden body) = do
-  env <- ask
-  let fn val = force $ runReader (evalExpr body) (Map.insert iden (Lazy val) env)
-  pure $ Lazy $ ClosureV fn
-evalExpr (LetE binding expr) = do
-  env <- addBinding binding
-  local (const env) $ evalExpr expr
+evalExpr = \case
+  VarE iden -> asks (Map.lookup iden) >>= \case
+    Just lazy -> pure lazy
+    Nothing -> error "bug"
+  LitE lit -> pure $ Lazy $ LitV lit
+  AppE expr arg -> evalExpr expr >>= \case
+    Lazy (ClosureV fn) -> Lazy . fn . force <$> evalExpr arg
+    _ -> error "bug"
+  LambdaE iden body -> do
+    env <- ask
+    let fn val = force $ runReader (evalExpr body) (Map.insert iden (Lazy val) env)
+    pure $ Lazy $ ClosureV fn
+  LetE binding expr -> do
+    env <- addBinding binding
+    local (const env) $ evalExpr expr
 
 -- | An evaluation environment.
 data Env = Env TypeEnv ValueEnv
